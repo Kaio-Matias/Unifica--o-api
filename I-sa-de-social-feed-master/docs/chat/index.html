@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat em Tempo Real</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Chat em Tempo Real</h1>
+
+    <div class="form">
+      <input type="number" id="userId" placeholder="Seu ID (ex: 1)" />
+      <input type="number" id="destId" placeholder="ID do Destinatário (ex: 2)" />
+      <button onclick="entrar()">Entrar</button>
+    </div>
+
+    <div id="chat" class="chat hidden">
+      <div class="messages" id="messages"></div>
+
+      <div class="send-box">
+        <input type="text" id="msgInput" placeholder="Digite sua mensagem..." />
+        <button onclick="enviarMensagem()">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

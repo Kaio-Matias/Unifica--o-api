@@ -1,0 +1,398 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "api-products",
+    "description": ""
+  },
+  "host": "localhost:80",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Default",
+      "description": "Endpoints of default endpoints"
+    },
+    {
+      "name": "Products",
+      "description": "Endpoints of products"
+    }
+  ],
+  "schemes": ["http", "https"],
+  "securityDefinitions": {
+    "api_key": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Default"],
+        "description": "Endpoint para ver a versão desta API",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Mostra a versão desta API",
+            "schema": {
+              "$ref": "#/definitions/DefaultIndex"
+            }
+          },
+          "400": {
+            "description": "Quando houver um erro na requisição",
+            "schema": {
+              "$ref": "#/definitions/Error400"
+            }
+          },
+          "401": {
+            "schema": {
+              "$ref": "#/definitions/ErrorTokenInvalid"
+            },
+            "description": "Quando o token de authenticação não for valido ou quando o token de authenticação não for encontrado"
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": ["Products"],
+        "description": "Endpoint para ver a versão desta API",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "id do produto",
+            "required": false
+          },
+          {
+            "name": "categoria",
+            "in": "query",
+            "description": "categoria do produto",
+            "required": false
+          },
+          {
+            "name": "preço",
+            "in": "query",
+            "description": "preço do produto",
+            "required": false
+          },
+          {
+            "name": "quantidade",
+            "in": "query",
+            "description": "quantidade do produto",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listar os produtos",
+            "schema": {
+              "$ref": "#/definitions/responseGetProducts"
+            }
+          },
+          "400": {
+            "description": "Quando houver um erro na requisição",
+            "schema": {
+              "$ref": "#/definitions/Error400"
+            }
+          },
+          "404": {
+            "description": "Quando não encontrar o produto(s)",
+            "schema": {
+              "$ref": "#/definitions/error404GetProduct"
+            }
+          },
+          "401": {
+            "schema": {
+              "$ref": "#/definitions/ErrorTokenInvalid"
+            },
+            "description": "Quando o token de authenticação não for valido ou quando o token de authenticação não for encontrado"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Products"],
+        "description": "Endpoint para criar um produto",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "body",
+            "description": "Objeto do produto",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/updateProduct"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Mostra a versão desta API",
+            "schema": {
+              "$ref": "#/definitions/productSetResponse"
+            }
+          },
+          "400": {
+            "description": "Quando houver um erro na requisição",
+            "schema": {
+              "$ref": "#/definitions/error400CreateProduct"
+            }
+          },
+          "401": {
+            "schema": {
+              "$ref": "#/definitions/ErrorTokenInvalid"
+            },
+            "description": "Quando o token de authenticação não for valido ou quando o token de authenticação não for encontrado"
+          }
+        }
+      }
+    },
+    "/products/:id": {
+      "put": {
+        "tags": ["Products"],
+        "description": "Endpoint para atualizar um produto",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "body",
+            "description": "Objeto do produto",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/updateProduct"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mostra a versão desta API",
+            "schema": {
+              "$ref": "#/definitions/productUpdateResponse"
+            }
+          },
+          "404": {
+            "description": "Quando houver um erro na requisição",
+            "schema": {
+              "$ref": "#/definitions/error404UpdateProduct"
+            }
+          },
+          "401": {
+            "schema": {
+              "$ref": "#/definitions/ErrorTokenInvalid"
+            },
+            "description": "Quando o token de authenticação não for valido ou quando o token de authenticação não for encontrado"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Products"],
+        "description": "Endpoint para deletar um produto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "params",
+            "description": "id do produto",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mostra a versão desta API",
+            "schema": {
+              "$ref": "#/definitions/deleteProductResponse"
+            }
+          },
+          "404": {
+            "description": "Quando houver um erro na requisição",
+            "schema": {
+              "$ref": "#/definitions/error404DeleteProduct"
+            }
+          },
+          "401": {
+            "schema": {
+              "$ref": "#/definitions/ErrorTokenInvalid"
+            },
+            "description": "Quando o token de authenticação não for valido ou quando o token de authenticação não for encontrado"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Error400": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Descrição sobre o erro"
+        }
+      }
+    },
+    "Error406": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Descrição sobre o erro"
+        }
+      }
+    },
+    "Error403": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Descrição sobre o erro"
+        }
+      }
+    },
+    "ErrorTokenInvalid": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Token Invalid || Token not provided"
+        }
+      }
+    },
+    "DefaultIndex": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "example": "1.0.0"
+        }
+      }
+    },
+    "getIncentives": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "example": "1.0.0"
+        }
+      }
+    },
+    "errLogin": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Email ou senha incorretos"
+        }
+      }
+    },
+    "deleteProductResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Produto deletado com sucesso"
+        }
+      }
+    },
+    "productUpdateResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Produto atualizado com sucesso"
+        }
+      }
+    },
+    "productSetResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Produto criado com sucesso"
+        }
+      }
+    },
+    "responseGetProducts": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "example": [
+            {
+              "id": 2,
+              "produto": "string",
+              "quantidade": 9,
+              "preço": "R$ 50,000.98",
+              "categoria": "categoria",
+              "created_at": "2024-09-19T06:02:28.065Z",
+              "updated_at": "2024-09-19T06:00:54.913Z"
+            },
+            {
+              "id": 3,
+              "produto": "string2",
+              "quantidade": 10,
+              "preço": "R$ 50,000.98",
+              "categoria": "categoria",
+              "created_at": "2024-09-19T06:02:28.065Z",
+              "updated_at": "2024-09-19T06:00:54.913Z"
+            }
+          ]
+        }
+      }
+    },
+    "updateProduct": {
+      "type": "object",
+      "properties": {
+        "produto": {
+          "type": "string",
+          "example": "produto1"
+        },
+        "quantidade": {
+          "type": "number",
+          "example": 10
+        },
+        "categoria": {
+          "type": "string",
+          "example": "categoria1"
+        },
+        "preço": {
+          "type": "string",
+          "example": "R$ 50,000.98"
+        }
+      }
+    },
+    "error400CreateProduct": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Produto já existe"
+        }
+      }
+    },
+    "error404UpdateProduct": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Produto não encontrado"
+        }
+      }
+    },
+    "error404GetProduct": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Nenhum produto foi encontrado"
+        }
+      }
+    },
+    "error404DeleteProduct": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Produto não encontrado"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+services:
+  db:
+    container_name: "users-isaude-db"
+    image: postgres:latest
+    restart: always
+    volumes:
+      - ./.docker/postgresql.conf:/etc/postgresql/postgresql.conf
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - ${BD_PORT}:5432
+
+  redis:
+    container_name: "users-isaude-redis"
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+  app:
+    container_name: "users-isaude-back-end"
+    build:
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    command: npm run dev
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+      - redis
