@@ -1,0 +1,90 @@
+services:
+  # --- BANCOS DE DADOS ---
+  marketplace-db:
+    image: postgres:16
+    container_name: marketplace-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${MP_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${MP_DB_PASS:-postgres}
+      POSTGRES_DB: ${MP_DB_NAME:-marketplace_db}
+    ports:
+      - "${MP_BD_PORT:-5432}:5432"
+    volumes:
+      - marketplace_pgdata:/var/lib/postgresql
+
+  social-midia-db:
+    image: postgres:16
+    container_name: social-midia-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${SM_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${SM_DB_PASS:-postgres}
+      POSTGRES_DB: ${SM_DB_NAME:-social_midia_db}
+    ports:
+      - "${SM_BD_PORT:-5433}:5432"
+    volumes:
+      - social_midia_pgdata:/var/lib/postgresql
+
+  teleconsulta-db:
+    image: postgres:16
+    container_name: teleconsulta-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${TC_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${TC_DB_PASS:-postgres}
+      POSTGRES_DB: ${TC_DB_NAME:-teleconsulta_db}
+    ports:
+      - "${TC_BD_PORT:-5434}:5432"
+    volumes:
+      - teleconsulta_pgdata:/var/lib/postgresql
+
+  users-isaude-db:
+    image: postgres:16
+    container_name: users-isaude-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${USER_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${USER_DB_PASS:-postgres}
+      POSTGRES_DB: ${USER_DB_NAME:-users_isaude_db}
+    ports:
+      - "${USER_BD_PORT:-5435}:5432"
+    volumes:
+      - users_isaude_pgdata:/var/lib/postgresql
+
+  # --- REDIS (para API de Usuários) ---
+  users-isaude-redis:
+    image: redis:alpine
+    container_name: users-isaude-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - users_isaude_redisdata:/data
+
+  # --- API de Usuários/Pacientes ---
+  users-api: # Nome do serviço dentro do Docker
+    build: ./usu-rios-pacientes-master # Caminho para o diretório da API
+    container_name: users-isaude-back-end # Nome do container
+    restart: unless-stopped
+    env_file:
+      - ./usu-rios-pacientes-master/.env # Aponta para o arquivo .env da API
+    ports:
+      - "8081:80" # Mapeia a porta 80 do container para a porta 8081 na sua máquina
+    volumes:
+      # Monta o código-fonte para permitir hot-reload com 'npm run dev'
+      - ./usu-rios-pacientes-master:/src
+      # Evita que node_modules local seja montado sobre o do container
+      - /src/node_modules
+    depends_on:
+      - users-isaude-db # Garante que o DB inicie antes
+      - users-isaude-redis # Garante que o Redis inicie antes
+    command: npm run dev # Comando para iniciar a API
+
+# Define os volumes nomeados para persistência
+volumes:
+  marketplace_pgdata:
+  social_midia_pgdata:
+  teleconsulta_pgdata:
+  users_isaude_pgdata:
+  users_isaude_redisdata:
