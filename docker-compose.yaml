@@ -81,6 +81,73 @@ services:
       - users-isaude-redis # Garante que o Redis inicie antes
     command: npm run dev # Comando para iniciar a API
 
+  # --- API de Marketplace ---
+  marketplace-api:
+    build: ./I-sa-de-MARKETPLACE-master
+    container_name: marketplace-back-end
+    restart: unless-stopped
+    env_file:
+      - ./I-sa-de-MARKETPLACE-master/.env
+    ports:
+      - "8082:80" # Porta 8082 na máquina
+    volumes:
+      - ./I-sa-de-MARKETPLACE-master:/src
+      - /src/node_modules
+    depends_on:
+      - marketplace-db
+    command: npm run dev
+
+  # --- API de Social Feed ---
+  social-feed-api:
+    build: ./I-sa-de-social-feed-master
+    container_name: social-midia-back-end
+    restart: unless-stopped
+    env_file:
+      - ./I-sa-de-social-feed-master/.env
+    ports:
+      - "8083:80" # Porta 8083 na máquina
+    volumes:
+      - ./I-sa-de-social-feed-master:/src
+      - /src/node_modules
+    depends_on:
+      - social-midia-db
+    command: npm run dev
+
+  # --- API de Teleconsulta ---
+  teleconsulta-api:
+    build: ./I-sa-de-teleconsultas-master
+    container_name: teleconsulta-back-end
+    restart: unless-stopped
+    env_file:
+      - ./I-sa-de-teleconsultas-master/.env
+    ports:
+      - "8084:80" # Porta 8084 na máquina
+    volumes:
+      - ./I-sa-de-teleconsultas-master:/src
+      - /src/node_modules
+    depends_on:
+      - teleconsulta-db
+    command: npm run dev
+
+  # --- API Gateway (BFF) ---
+  bff-api:
+    build: ./I-sa-de-BBF-master
+    container_name: bff-isaude
+    restart: unless-stopped
+    env_file:
+      - ./I-sa-de-BBF-master/.env
+    ports:
+      - "8080:80" # Ponto de entrada principal: localhost:8080
+    volumes:
+      - ./I-sa-de-BBF-master:/src
+      - /src/node_modules
+    depends_on:
+      - users-api
+      - marketplace-api
+      - social-feed-api
+      - teleconsulta-api
+    command: npm run dev
+
 # Define os volumes nomeados para persistência
 volumes:
   marketplace_pgdata:
