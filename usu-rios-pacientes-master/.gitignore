@@ -6,3 +6,5 @@ __tests__/coverage
 .env
 .env.development
 .env.test
+echo "**/serviceAccountKey.json" >> .gitignore
+git add .gitignore
