@@ -3,7 +3,8 @@
     "target": "es2017",
     "types": [
       "node",
-      "jest"
+      "jest",
+      "multer"
     ],
     "module": "commonjs",
     "lib": [

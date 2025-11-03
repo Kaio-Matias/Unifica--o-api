@@ -14,12 +14,12 @@ import {
 } from '../services/TeleConsultaAPI';
 import dotenv from "dotenv";
 
-import { File as MulterFile } from 'multer';
+
 
 import FormData from 'form-data';
 
 interface MulterRequest extends Request {
-  file?: MulterFile;
+  file?: Express.Multer.File; 
 }
 
 dotenv.config();

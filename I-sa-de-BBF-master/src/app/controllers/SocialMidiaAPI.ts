@@ -24,12 +24,12 @@ import {
   UploadService,
   StoryService
 } from '../services/SocialMidiaAPI';
-import { File as MulterFile } from 'multer';
-import dotenv from "dotenv";
+
 import FormData from 'form-data';
+import dotenv from "dotenv";
 
 interface MulterRequest extends Request {
-  file?: MulterFile;
+  file?: Express.Multer.File; 
 }
 
 dotenv.config();

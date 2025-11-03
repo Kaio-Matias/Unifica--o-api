@@ -10,12 +10,12 @@ import {
   ReceitaDigitalService,
   UploadService
 } from '../services/MarketplaceAPI';
-import { File as MulterFile } from 'multer';
+
 import dotenv from "dotenv";
 import FormData from 'form-data';
 
 interface MulterRequest extends Request {
-  file?: MulterFile;
+  file?: Express.Multer.File;
 }
 
 dotenv.config();
