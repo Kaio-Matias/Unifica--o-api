@@ -14,11 +14,11 @@ export class UserRepository implements IUserRepository {
   }
 
   async findAll(): Promise<User[]> {
-    return await this.repository.find({ relations: ['contatos', 'contatos_de_outros'] });
+    return await this.repository.find({ relations: ['contatos', 'contactEntries', 'contatos_de_outros'] });
   }
 
   async findById(id: number): Promise<User | null> {
-    return await this.repository.findOne({ where: { id }, relations: ['contatos', 'contatos_de_outros'] });
+    return await this.repository.findOne({ where: { id }, relations: ['contatos', 'contactEntries', 'contatos_de_outros'] });
   }
 
   async findByQuery(query: FindOptionsWhere<IUser> & { skip: number; take: number; order: any; } | FindOptionsWhere<IUser>[] & { skip: number; take: number; order: any; }): Promise<User[]> {
@@ -38,9 +38,9 @@ export class UserRepository implements IUserRepository {
     delete query.order;
 
     if (objectFilter.skip || objectFilter.take || objectFilter.order) {
-      return await this.repository.find({ where: { ...query }, relations: ['contatos', 'contatos_de_outros'], ...objectFilter });
+      return await this.repository.find({ where: { ...query }, relations: ['contatos', 'contactEntries', 'contatos_de_outros'], ...objectFilter });
     }
-    return await this.repository.find({ where: { ...query }, relations: ['contatos', 'contatos_de_outros'] });
+    return await this.repository.find({ where: { ...query }, relations: ['contatos', 'contactEntries', 'contatos_de_outros'] });
   }
 
   async findByQueryOne(
@@ -48,16 +48,19 @@ export class UserRepository implements IUserRepository {
     isGetPassword: boolean = false
   ): Promise<User | null> {
     if (!isGetPassword) {
-      return await this.repository.findOne({ where: { ...query }, relations: ['contatos', 'contatos_de_outros'] });
+      return await this.repository.findOne({ where: { ...query }, relations: ['contatos', 'contactEntries', 'contatos_de_outros'] });
     }
 
-    // Usar queryBuilder com where dinâmico
+    // --- CORREÇÃO AQUI ---
+    // Alteramos a primeira junção de "user.contatos" (que são telefones)
+    // para "user.contactEntries" (que é a lista de usuários de contato correta).
     const qb = this.repository.createQueryBuilder("user")
-      .leftJoinAndSelect("user.contatos", "usuariosContatos") // user → contatos
-      .leftJoinAndSelect("usuariosContatos.contato", "contato") // contatos → contato (User)
-      .leftJoinAndSelect("user.contatos_de_outros", "usuariosContatosDe") // user → contatos_de_outros
-      .leftJoinAndSelect("usuariosContatosDe.usuario", "usuarioDe") // contatos_de_outros → usuario (User)
+      .leftJoinAndSelect("user.contactEntries", "usuariosContatos") // <-- CORRIGIDO
+      .leftJoinAndSelect("usuariosContatos.contato", "contato")
+      .leftJoinAndSelect("user.contatos_de_outros", "usuariosContatosDe") 
+      .leftJoinAndSelect("usuariosContatosDe.usuario", "usuarioDe") 
       .addSelect("user.senha_hash");
+    // --- FIM DA CORREÇÃO ---
 
     if (Array.isArray(query)) {
       qb.where(query.map((q, i) => {

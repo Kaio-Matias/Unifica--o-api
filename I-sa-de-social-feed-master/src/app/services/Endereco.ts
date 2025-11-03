@@ -11,14 +11,28 @@ export class EnderecoService {
     this.repository = new EnderecoRepository();
   }
 
-  async createEndereco(data: IEndereco) {
-    const dataFilter = filterProps<IEndereco & { pharmacyCNPJ: string; unidadeSaudeCNPJ: string }>(data, [...ENDERECO_FIELDS] as (keyof IEndereco & { pharmacyCNPJ: string; unidadeSaudeCNPJ: string })[]);
+  async createEndereco(data: IEndereco & { pharmacyCNPJ?: string; unidadeSaudeCNPJ?: string }) {
+    // <<< CORREÇÃO AQUI
+    // 1. Filtramos apenas os campos que realmente existem na tabela 'enderecos'
+    const dataFilter = filterProps<IEndereco>(data, [...ENDERECO_FIELDS] as (keyof IEndereco)[]);
 
     if (!dataFilter.cep || !dataFilter.logradouro || !dataFilter.bairro || !dataFilter.cidade || !dataFilter.estado || !dataFilter.pais) {
       throw new Error('Campos obrigatórios ausentes: cep, logradouro, bairro, cidade, estado, pais');
     }
 
-    const endereco = await this.repository.save(!dataFilter.pharmacyCNPJ ? { ...dataFilter, unidadeSaude: { cnpj: dataFilter.pharmacyCNPJ } } : { ...dataFilter, farmacia: { cnpj: dataFilter.unidadeSaudeCNPJ } });
+    // 2. Criamos o objeto de salvamento com os dados filtrados
+    const saveOptions: any = { ...dataFilter };
+
+    // 3. Verificamos os CNPJs no objeto 'data' original (não filtrado)
+    // e adicionamos a relação correta (farmacia ou unidadeSaude).
+    if (data.pharmacyCNPJ) {
+      saveOptions.farmacia = { cnpj: data.pharmacyCNPJ };
+    } else if (data.unidadeSaudeCNPJ) {
+      saveOptions.unidadeSaude = { cnpj: data.unidadeSaudeCNPJ };
+    }
+    // Fim da Correção
+
+    const endereco = await this.repository.save(saveOptions);
     return endereco;
   }
 

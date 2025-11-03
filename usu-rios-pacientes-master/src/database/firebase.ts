@@ -2,8 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
+import path from "path"; // Importamos 'path' para resolver o caminho
 
 dotenv.config();
+
+console.log("--- [DEBUG] INICIANDO firebase.ts (v3 - Carregando JSON) ---");
+console.log("Projeto ID do .env:", process.env.FIREBASE_PROJECT_ID);
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -13,14 +17,21 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 
+// --- CORREÇÃO APLICADA (Método JSON) ---
+// Em vez de ler a chave do .env, vamos ler o arquivo JSON
+// que está na raiz do projeto (dentro do container, /src/serviceAccountKey.json)
+const serviceAccountPath = path.resolve(__dirname, '../../serviceAccountKey.json');
+console.log("--- [DEBUG] Carregando Service Account de:", serviceAccountPath);
+
 admin.initializeApp({
-  credential: admin.credential.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-  })
+  // Usamos o caminho do arquivo JSON diretamente
+  credential: admin.credential.cert(serviceAccountPath),
 });
+// --- FIM DA CORREÇÃO ---
 
 const authAdmin = admin.auth();
 
+console.log("--- [DEBUG] Firebase Admin inicializado com sucesso! ---");
+
 export { auth, admin, authAdmin };
+

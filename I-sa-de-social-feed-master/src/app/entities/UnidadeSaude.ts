@@ -1,5 +1,3 @@
-
-
 import {
   Entity,
   Column,
@@ -30,6 +28,9 @@ export class UnidadeSaude {
   @Column()
   cpf_resp: string;
 
+  // <<< CORREÇÃO AQUI
+  // Adicionamos 'name: 'registro_resp'' para mapear corretamente
+  // a propriedade 'registroResp' para a coluna 'registro_resp' do banco.
   @Column({ name: 'registro_resp', length: 50 })
   registroResp: string;
 

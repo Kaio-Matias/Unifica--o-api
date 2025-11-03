@@ -1,4 +1,5 @@
-import { RespostaUsuarioRepository } from '../repositories/RespostaUsuario';
+// <<< CORREÇÃO AQUI: Alterado de '../repositories/RespostaUsuario' para '../repositories/respostaUsuario'
+import { RespostaUsuarioRepository } from '../repositories/respostaUsuario'; 
 import { RespostaUsuario } from '../entities/RespostaUsuario';
 import { IRespostaUsuario } from '../interfaces/respostaUsuario';
 import { filterProps } from '../utils/filterProps';

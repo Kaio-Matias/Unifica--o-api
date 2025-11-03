@@ -60,7 +60,14 @@ export class User {
   is_verificado: boolean;
 
   @OneToMany(() => Contato, contacts => contacts.usuario)
-  contatos: Contato[];
+  contatos: Contato[]; // Relação para telefones/emails (Entidade Contato)
+
+  // --- CORREÇÃO AQUI ---
+  // Adicionamos a relação que estava faltando para a tabela 'UsuariosContatos'
+  // Esta é a lista de contatos (outros usuários) que este usuário adicionou.
+  @OneToMany(() => UsuariosContatos, uc => uc.usuario)
+  contactEntries: UsuariosContatos[];
+  // --- FIM DA CORREÇÃO ---
 
   @OneToMany(() => UsuariosContatos, uc => uc.contato)
   contatos_de_outros: UsuariosContatos[];

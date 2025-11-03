@@ -1,27 +1,92 @@
 import { Router } from 'express';
-import UsersAPI from '../controllers/UsersAPI';
-import { authMiddleware } from '@app/middlewares';
+import * as UsersAPI from "@app/controllers/UsersAPI"; // <-- CORREÇÃO AQUI
+import { auth } from '@app/middlewares';
+import { upload } from '@app/middlewares/multer';
 
-const routes = Router();
+const userAPIRoutes = Router();
 
-// Rotas de Usuário (CORRIGIDAS: prefixo /users removido)
-routes.post('/', UsersAPI.createUser);
-routes.get('/', authMiddleware, UsersAPI.getUser);
-routes.put('/:id', authMiddleware, UsersAPI.updateUser);
-routes.delete('/:id', authMiddleware, UsersAPI.deleteUser);
-routes.post('/login', UsersAPI.loginUser);
-routes.post('/verify-login', UsersAPI.verifyLogin);
-routes.post('/send-reset-code', UsersAPI.sendResetCode);
-routes.post('/verify-reset-code', UsersAPI.verifyResetCode);
-routes.post('/reset-password', UsersAPI.resetPassword);
+// Rotas de Usuário
+userAPIRoutes.get(
+  '/user/:id',
+  auth,
+  UsersAPI.getUserById
+);
+userAPIRoutes.get(
+  '/user',
+  auth,
+  UsersAPI.getUserByQuery
+);
+userAPIRoutes.post(
+  '/user/create',
+  auth,
+  UsersAPI.createUser
+);
+userAPIRoutes.put(
+  '/user/update/:id',
+  auth,
+  UsersAPI.updateUser
+);
+userAPIRoutes.delete(
+  '/user/delete/:id',
+  auth,
+  UsersAPI.deleteUser
+);
 
-// --- Adicionando as outras rotas do microsserviço que estavam em falta no seu BFF ---
-// Isto garante que não terá erros 404 no futuro para estas rotas.
-routes.post('/contact', authMiddleware, UsersAPI.createUserContact);
-routes.get('/contact', authMiddleware, UsersAPI.getUserContact);
-routes.put('/contact/:id', authMiddleware, UsersAPI.updateUserContact);
-routes.delete('/contact/:id', authMiddleware, UsersAPI.deleteUserContact);
+// Rotas de Contato
+userAPIRoutes.get(
+  '/contact/:id',
+  auth,
+  UsersAPI.getUserContact
+);
+userAPIRoutes.post(
+  '/contact/create/:id',
+  auth,
+  UsersAPI.createUserContact
+);
+userAPIRoutes.put(
+  '/contact/update/:id',
+  auth,
+  UsersAPI.updateUserContact
+);
+userAPIRoutes.delete(
+  '/contact/delete/:id',
+  auth,
+  UsersAPI.deleteUserContact
+);
 
-routes.post('/upload', authMiddleware, UsersAPI.uploadFile);
+// Rota de Upload
+userAPIRoutes.post(
+  '/upload/:id',
+  auth,
+  upload.single('file'),
+  UsersAPI.uploadFiles
+);
 
-export default routes;
+// Rotas de Autenticação
+userAPIRoutes.post(
+  '/user/login',
+  auth,
+  UsersAPI.loginUser
+);
+userAPIRoutes.post(
+  '/user/verify-login',
+  auth,
+  UsersAPI.verifyLogin
+);
+userAPIRoutes.post(
+  '/user/password/send-code',
+  auth,
+  UsersAPI.sendResetPasswordCodeInEmail
+);
+userAPIRoutes.post(
+  '/user/password/verify-code',
+  auth,
+  UsersAPI.verifyPasswordCodeInEmail
+);
+userAPIRoutes.post(
+  '/user/password/reset',
+  auth,
+  UsersAPI.resetPassword
+);
+
+export default userAPIRoutes;

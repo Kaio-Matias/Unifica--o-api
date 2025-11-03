@@ -21,6 +21,6 @@ services:
       - ./.env
     command: npm run dev
     ports:
-      - '80:80'
+     - '8083:80'
     depends_on:
       - db

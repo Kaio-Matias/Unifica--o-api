@@ -1,44 +1,49 @@
-version: '3.8' # Você pode remover esta linha se receber o aviso de obsoleto
+version: '3.8'
 
 services:
-  # --- BANCOS DE DADOS ---
-  marketplace-db:
-    # ... (definição existente)
-  social-midia-db:
-    # ... (definição existente)
-  teleconsulta-db:
-    # ... (definição existente)
+  # --- Banco de Dados do Usuário ---
   users-isaude-db:
-    # ... (definição existente)
+    image: postgres:16
+    container_name: users-isaude-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-postgres}
+      POSTGRES_DB: ${DB_NAME:-users_isaude_db}
+    ports:
+      # Expõe a porta 5435 na sua máquina (localhost:5435)
+      - "5435:5432"
+    volumes:
+      - users_isaude_pgdata:/var/lib/postgresql/data
 
   # --- REDIS (para API de Usuários) ---
   users-isaude-redis:
-    # ... (definição existente)
+    image: redis:alpine
+    container_name: users-isaude-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - users_isaude_redisdata:/data
 
   # --- API de Usuários/Pacientes ---
-  users-api: # Nome do serviço dentro do Docker
-    build: ./usu-rios-pacientes-master # Caminho para o diretório da API
-    container_name: users-isaude-back-end # Nome do container
+  users-api:
+    build: . # <-- Ajustado: Constrói a partir da pasta atual
+    container_name: users-isaude-back-end
     restart: unless-stopped
     env_file:
-      - ./usu-rios-pacientes-master/.env # Aponta para o arquivo .env da API
+      - ./.env # <-- Ajustado: Carrega o .env da pasta atual
     ports:
-      - "8081:80" # Mapeia a porta 80 do container para a porta 8081 na sua máquina
+      # Expõe a porta 8081 na sua máquina (localhost:8081)
+      - "8081:80"
     volumes:
-      # Monta o código-fonte para permitir hot-reload com 'npm run dev'
-      - ./usu-rios-pacientes-master:/src
-      # Evita que node_modules local seja montado sobre o do container
+      - ./:/src # <-- Ajustado: Monta a pasta atual para /src
       - /src/node_modules
     depends_on:
-      - users-isaude-db # Garante que o DB inicie antes
-      - users-isaude-redis # Garante que o Redis inicie antes
-    command: npm run dev # Comando para iniciar a API (conforme package.json)
+      - users-isaude-db
+      - users-isaude-redis
+    command: npm run dev
 
-# Define os volumes nomeados para persistência
 volumes:
-  # ... (definições existentes)
-
-# (Opcional, mas recomendado) Define uma rede customizada
-# networks:
-#   isaude-network:
-#     driver: bridge
+  users_isaude_pgdata:
+  users_isaude_redisdata:

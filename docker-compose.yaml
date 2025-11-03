@@ -11,7 +11,7 @@ services:
     ports:
       - "${MP_BD_PORT:-5432}:5432"
     volumes:
-      - marketplace_pgdata:/var/lib/postgresql
+      - marketplace_pgdata:/var/lib/postgresql/data
 
   social-midia-db:
     image: postgres:16
@@ -24,7 +24,7 @@ services:
     ports:
       - "${SM_BD_PORT:-5433}:5432"
     volumes:
-      - social_midia_pgdata:/var/lib/postgresql
+      - social_midia_pgdata:/var/lib/postgresql/data
 
   teleconsulta-db:
     image: postgres:16
@@ -37,7 +37,7 @@ services:
     ports:
       - "${TC_BD_PORT:-5434}:5432"
     volumes:
-      - teleconsulta_pgdata:/var/lib/postgresql
+      - teleconsulta_pgdata:/var/lib/postgresql/data
 
   users-isaude-db:
     image: postgres:16
@@ -50,7 +50,7 @@ services:
     ports:
       - "${USER_BD_PORT:-5435}:5432"
     volumes:
-      - users_isaude_pgdata:/var/lib/postgresql
+      - users_isaude_pgdata:/var/lib/postgresql/data
 
   # --- REDIS (para API de Usuários) ---
   users-isaude-redis:
@@ -63,23 +63,24 @@ services:
       - users_isaude_redisdata:/data
 
   # --- API de Usuários/Pacientes ---
-  users-api: # Nome do serviço dentro do Docker
-    build: ./usu-rios-pacientes-master # Caminho para o diretório da API
-    container_name: users-isaude-back-end # Nome do container
+  users-api:
+    build: ./usu-rios-pacientes-master
+    container_name: users-isaude-back-end
     restart: unless-stopped
     env_file:
-      - ./usu-rios-pacientes-master/.env # Aponta para o arquivo .env da API
+      - ./usu-rios-pacientes-master/.env
     ports:
-      - "8081:80" # Mapeia a porta 80 do container para a porta 8081 na sua máquina
+      - "8081:80"
     volumes:
-      # Monta o código-fonte para permitir hot-reload com 'npm run dev'
       - ./usu-rios-pacientes-master:/src
-      # Evita que node_modules local seja montado sobre o do container
+      # --- CORREÇÃO ADICIONADA AQUI ---
+      # Mapeia o serviceAccountKey.json para dentro do contêiner
+      - ./usu-rios-pacientes-master/serviceAccountKey.json:/src/serviceAccountKey.json
       - /src/node_modules
     depends_on:
-      - users-isaude-db # Garante que o DB inicie antes
-      - users-isaude-redis # Garante que o Redis inicie antes
-    command: npm run dev # Comando para iniciar a API
+      - users-isaude-db
+      - users-isaude-redis
+    command: npm run dev
 
   # --- API de Marketplace ---
   marketplace-api:
@@ -89,7 +90,7 @@ services:
     env_file:
       - ./I-sa-de-MARKETPLACE-master/.env
     ports:
-      - "8082:80" # Porta 8082 na máquina
+      - "8082:80"
     volumes:
       - ./I-sa-de-MARKETPLACE-master:/src
       - /src/node_modules
@@ -105,7 +106,7 @@ services:
     env_file:
       - ./I-sa-de-social-feed-master/.env
     ports:
-      - "8083:80" # Porta 8083 na máquina
+      - "8083:80"
     volumes:
       - ./I-sa-de-social-feed-master:/src
       - /src/node_modules
@@ -121,7 +122,7 @@ services:
     env_file:
       - ./I-sa-de-teleconsultas-master/.env
     ports:
-      - "8084:80" # Porta 8084 na máquina
+      - "8084:80"
     volumes:
       - ./I-sa-de-teleconsultas-master:/src
       - /src/node_modules
@@ -137,7 +138,7 @@ services:
     env_file:
       - ./I-sa-de-BBF-master/.env
     ports:
-      - "8080:80" # Ponto de entrada principal: localhost:8080
+      - "8080:80" # <-- PONTO DE ENTRADA PRINCIPAL
     volumes:
       - ./I-sa-de-BBF-master:/src
       - /src/node_modules
@@ -155,3 +156,4 @@ volumes:
   teleconsulta_pgdata:
   users_isaude_pgdata:
   users_isaude_redisdata:
+
