@@ -7,8 +7,7 @@
     "start": "nodemon dist/server.js",
     "test": "jest --detectOpenHandles",
     "test-stress": "jest --stressRuns=40 --detectOpenHandles",
-    "dev": "ts-node-dev -r tsconfig-paths/register --respawn --ignore-watch node_modules --no-notify ./src/server.ts",
-    "build": "babel src --extensions \".js,.ts\" --out-dir dist --copy-files --no-copy-ignored",
+    "dev": "ts-node-dev --poll -r tsconfig-paths/register --respawn --ignore-watch node_modules --no-notify ./src/server.ts",    "build": "babel src --extensions \".js,.ts\" --out-dir dist --copy-files --no-copy-ignored",
     "documentation": "ts-node-dev -r tsconfig-paths/register --respawn --ignore-watch node_modules --no-notify ./swagger.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d ./src/database/typeorm.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:run -d ./src/database/typeorm.ts"

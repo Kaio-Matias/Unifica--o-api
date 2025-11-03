@@ -1,31 +1,27 @@
 import { Router } from 'express';
-import multer from 'multer';
+import UsersAPI from '../controllers/UsersAPI';
+import { authMiddleware } from '@app/middlewares';
 
-import { UserController, ContactController, UploadController } from '../controllers/UsersAPI';
+const routes = Router();
 
-const router = Router();
-const upload = multer();
+// Rotas de Usuário (CORRIGIDAS: prefixo /users removido)
+routes.post('/', UsersAPI.createUser);
+routes.get('/', authMiddleware, UsersAPI.getUser);
+routes.put('/:id', authMiddleware, UsersAPI.updateUser);
+routes.delete('/:id', authMiddleware, UsersAPI.deleteUser);
+routes.post('/login', UsersAPI.loginUser);
+routes.post('/verify-login', UsersAPI.verifyLogin);
+routes.post('/send-reset-code', UsersAPI.sendResetCode);
+routes.post('/verify-reset-code', UsersAPI.verifyResetCode);
+routes.post('/reset-password', UsersAPI.resetPassword);
 
-// Rotas de usuário
-router.post('/users', UserController.create);
-router.post('/users/login', UserController.login);
-router.get('/users/verify-login', UserController.verifyLogin);
-router.get('/users/:id?', UserController.getAll);
-router.put('/users/:id', UserController.update);
-router.delete('/users/:id', UserController.remove);
+// --- Adicionando as outras rotas do microsserviço que estavam em falta no seu BFF ---
+// Isto garante que não terá erros 404 no futuro para estas rotas.
+routes.post('/contact', authMiddleware, UsersAPI.createUserContact);
+routes.get('/contact', authMiddleware, UsersAPI.getUserContact);
+routes.put('/contact/:id', authMiddleware, UsersAPI.updateUserContact);
+routes.delete('/contact/:id', authMiddleware, UsersAPI.deleteUserContact);
 
-// Recuperação de senha
-router.post('/users/send-reset-code', UserController.sendResetCode);
-router.post('/users/verify-reset-code', UserController.verifyResetCode);
-router.post('/users/reset-password', UserController.resetPassword);
+routes.post('/upload', authMiddleware, UsersAPI.uploadFile);
 
-// Rotas de contatos
-router.post('/contacts', ContactController.create);
-router.get('/contacts/:id?', ContactController.getAll);
-router.put('/contacts/:id', ContactController.update);
-router.delete('/contacts/:id', ContactController.remove);
-
-// Upload de arquivos
-router.post('/upload', upload.single('file'), UploadController.upload);
-
-export default router;
+export default routes;
