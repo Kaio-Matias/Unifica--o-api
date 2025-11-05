@@ -36,7 +36,7 @@ export const UserController = {
       // O microserviço de usuário salvará apenas os campos que ele conhece
       // (nome, email, cpf, password, user_type, etc.)
       const result = await userService.createUser(body, token);
-      createdUser = result.data; // Salva a resposta da criação do usuário base
+      createdUser = result.data.user; // Salva a resposta da criação do usuário base
 
       // Se não houver ID, algo muito errado aconteceu
       if (!createdUser || !createdUser.id) {

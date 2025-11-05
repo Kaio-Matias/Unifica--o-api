@@ -14,7 +14,7 @@ const router = express.Router();
 router.get('/', authentication, DefaultControllersUsers);
 router.get('/api', authentication, DefaultControllersUsers);
 
-router.use('/api/user-api', UserRoutes);
+router.use('/', UserRoutes);
 router.use('/api/marketplace', authentication, MarketplaceAPIRoutes);
 router.use('/api/teleconsulta', authentication, TeleConsultaAPIRoutes);
 router.use('/api/social-midia', authentication, SocialMidiaAPIRoutes);

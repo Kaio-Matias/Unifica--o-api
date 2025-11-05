@@ -13,10 +13,10 @@ const router = express.Router();
 router.get('/', authentication, DefaultControllersUsers);
 router.get('/api', authentication, DefaultControllersUsers);
 
-router.use('/api/user', authentication, UserRoutes);
+router.use('/api/user', UserRoutes);
 
-router.use('/api/contact', authentication, ContactRoutes);
+router.use('/api/contact', ContactRoutes);
 
-router.use('/api/upload-files', authentication, UploadRoutes);
+router.use('/api/upload-files', UploadRoutes);
 
 export default router;

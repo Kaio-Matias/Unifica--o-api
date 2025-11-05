@@ -11,7 +11,7 @@ export const contactService = {
    * @returns {Promise} Axios promise.
    */
   createContact: async (contactData, token) => {
-    const url = `${API_BASE_URL_USER}/contact/create`; // From source: 36
+    const url = `${API_BASE_URL_USER}/api/contact/create`; // From source: 36
     return await axios.post(url, contactData, getAuthHeaders(token)); // From source: 37
   },
 
@@ -21,7 +21,7 @@ export const contactService = {
    * @returns {Promise} Axios promise.
    */
   getContacts: async (token, order) => {
-    const url = `${API_BASE_URL_USER}/contact`; // From source: 39
+    const url = `${API_BASE_URL_USER}/api/contact`; // From source: 39
     return await axios.get(url, getAuthHeaders(token, order)); // From source: 39, 40
   },
 
@@ -32,17 +32,17 @@ export const contactService = {
    * @returns {Promise} Axios promise.
    */
   getContactById: async (id, token) => {
-    const url = `${API_BASE_URL_USER}/contact/${id}`; // From source: 41
+    const url = `${API_BASE_URL_USER}/api/contact/${id}`; // From source: 41
     return await axios.get(url, getAuthHeaders(token)); // From source: 41, 42
   },
 
   getContactByQuery: async (query, token, order) => {
-    const url = `${API_BASE_URL_USER}/contact${objectToQueryParams(query)}`; // From source: 41
+    const url = `${API_BASE_URL_USER}/api/contact${objectToQueryParams(query)}`; // From source: 41
     return await axios.get(url, getAuthHeaders(token, order)); // From source: 41, 42
   },
 
   getContactByIdAndQuery: async (query, id, token) => {
-    const url = `${API_BASE_URL_USER}/contact/${id}${objectToQueryParams(query)}`; // From source: 41
+    const url = `${API_BASE_URL_USER}/api/contact/${id}${objectToQueryParams(query)}`; // From source: 41
     return await axios.get(url, getAuthHeaders(token)); // From source: 41, 42
   },
 
@@ -54,7 +54,7 @@ export const contactService = {
    * @returns {Promise} Axios promise.
    */
   updateContact: async (id, contactData, token) => {
-    const url = `${API_BASE_URL_USER}/contact/${id}`; // From source: 44
+    const url = `${API_BASE_URL_USER}/api/contact/${id}`; // From source: 44
     return await axios.put(url, contactData, getAuthHeaders(token)); // From source: 45
   },
 
@@ -65,7 +65,7 @@ export const contactService = {
    * @returns {Promise} Axios promise.
    */
   deleteContact: async (id, token) => {
-    const url = `${API_BASE_URL_USER}/contact/${id}`; // From source: 47
+    const url = `${API_BASE_URL_USER}/api/contact/${id}`; // From source: 47
     return await axios.delete(url, getAuthHeaders(token)); // From source: 47, 48
   },
 };

@@ -21,7 +21,6 @@ userAPIRoutes.get(
 );
 userAPIRoutes.post(
   '/user/create',
-  // CORREÇÃO: Autenticação removida (rota pública)
   UsersAPI.UserController.create // CORREÇÃO: Chamada correta
 );
 userAPIRoutes.put(
@@ -68,7 +67,6 @@ userAPIRoutes.post(
 // Rotas de Autenticação (Públicas)
 userAPIRoutes.post(
   '/user/login',
-  // CORREÇÃO: Autenticação removida
   UsersAPI.UserController.login // CORREÇÃO: Chamada correta
 );
 userAPIRoutes.post(
@@ -78,17 +76,14 @@ userAPIRoutes.post(
 );
 userAPIRoutes.post(
   '/user/password/send-code',
-  // CORREÇÃO: Autenticação removida
   UsersAPI.UserController.sendResetCode // CORREÇÃO: Chamada correta
 );
 userAPIRoutes.post(
   '/user/password/verify-code',
-  // CORREÇÃO: Autenticação removida
   UsersAPI.UserController.verifyResetCode // CORREÇÃO: Chamada correta
 );
 userAPIRoutes.post(
   '/user/password/reset',
-  // CORREÇÃO: Autenticação removida
   UsersAPI.UserController.resetPassword // CORREÇÃO: Chamada correta
 );
 
