@@ -12,18 +12,18 @@ const createService = (basePath: string) => ({
   remove: async (id: string | number, token: string) => await axios.delete(`${API_BASE_URL_TELECONSULTA}${basePath}/${id}`, getAuthHeaders(token)),
 });
 
-export const AgendamentoConsultaService = createService('/agendamento-consulta');
-export const AvaliacaoService = createService('/avaliacao');
-export const ClinicService = createService('/clinic');
-export const ClinicExamService = createService('/exam');
-export const ClinicPromocaoService = createService('/promocao');
-export const ExamAgendamentoService = createService('/agendamento');
-export const ExamPaymentService = createService('/payment');
-export const ConexaoProfissionalClinicaService = createService('/conexao-profissional-clinic');
-export const DocumentService = createService('/document');
-export const EnderecosService = createService('/endereco');
+export const AgendamentoConsultaService = createService('/api/agendamento-consulta');
+export const AvaliacaoService = createService('/api/avaliacao');
+export const ClinicService = createService('/api/clinic');
+export const ClinicExamService = createService('/api/exam');
+export const ClinicPromocaoService = createService('/api/promocao');
+export const ExamAgendamentoService = createService('/api/agendamento');
+export const ExamPaymentService = createService('/api/payment');
+export const ConexaoProfissionalClinicaService = createService('/api/conexao-profissional-clinic');
+export const DocumentService = createService('/api/document');
+export const EnderecosService = createService('/api/endereco');
 
 export const UploadService = {
   uploadFile: async (formData: any, token: string) =>
-    await axios.post(`${API_BASE_URL_TELECONSULTA}/upload-files`, formData, getMultipartAuthHeaders(token)),
+    await axios.post(`${API_BASE_URL_TELECONSULTA}/api/upload-files`, formData, getMultipartAuthHeaders(token)),
 };
