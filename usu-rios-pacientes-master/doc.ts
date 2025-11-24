@@ -3,10 +3,10 @@ import version from 'project-version';
 const doc = {
   info: {
     version,
-    title: 'api-users',
+    title: 'API de Usuários e Pacientes',
     description: '',
   },
-  host: 'localhost:80',
+  host: 'localhost:8081',
   basePath: '/',
   schemes: ['http', 'https'],
   consumes: ['application/json'],

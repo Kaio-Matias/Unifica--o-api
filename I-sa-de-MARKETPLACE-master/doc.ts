@@ -3,10 +3,10 @@ import version from 'project-version';
 const doc = {
   info: {
     version,
-    title: 'api-marketplace',
+    title: 'API de Marketplace',
     description: '',
   },
-  host: 'localhost:80',
+  host: 'localhost:8082',
   basePath: '/',
   schemes: ['http', 'https'],
   consumes: ['application/json'],

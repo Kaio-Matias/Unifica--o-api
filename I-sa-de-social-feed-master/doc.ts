@@ -3,10 +3,10 @@ import version from 'project-version';
 const doc = {
   info: {
     version,
-    title: 'api-social-midia',
+    title: 'API de Social Feed',
     description: '',
   },
-  host: 'localhost:80',
+  host: 'localhost:8083',
   basePath: '/',
   schemes: ['http', 'https'],
   consumes: ['application/json'],

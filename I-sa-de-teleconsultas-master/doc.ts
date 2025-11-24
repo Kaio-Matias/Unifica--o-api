@@ -3,10 +3,10 @@ import version from 'project-version';
 const doc = {
   info: {
     version,
-    title: 'api-teleconsulta',
+    title: 'API de Teleconsulta',
     description: '',
   },
-  host: 'localhost:80',
+  host: 'localhost:8084',
   basePath: '/',
   schemes: ['http', 'https'],
   consumes: ['application/json'],

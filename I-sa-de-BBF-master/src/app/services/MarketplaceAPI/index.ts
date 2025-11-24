@@ -12,16 +12,16 @@ const createService = (basePath: string) => ({
   remove: async (id: string | number, token: string) => await axios.delete(`${API_BASE_URL_MARKETPLACE}${basePath}/${id}`, getAuthHeaders(token)),
 });
 
-export const CarrinhoService = createService('/carrinho');
-export const MedicamentoService = createService('/medicamento');
-export const PagamentoService = createService('/pagamento');
-export const PedidoService = createService('/pedido');
-export const PharmacyService = createService('/pharmacy');
-export const PharmacyProductService = createService('/product');
-export const PromocaoService = createService('/promocao');
-export const ReceitaDigitalService = createService('/receita-digital');
+export const CarrinhoService = createService('/api/carrinho');
+export const MedicamentoService = createService('/api/medicamento');
+export const PagamentoService = createService('/api/pagamento');
+export const PedidoService = createService('/api/pedido');
+export const PharmacyService = createService('/api/pharmacy');
+export const PharmacyProductService = createService('/api/product');
+export const PromocaoService = createService('/api/promocao');
+export const ReceitaDigitalService = createService('/api/receita-digital');
 
 export const UploadService = {
   uploadFile: async (formData: any, token: string) =>
-    await axios.post(`${API_BASE_URL_MARKETPLACE}/upload-files`, formData, getMultipartAuthHeaders(token)),
+    await axios.post(`${API_BASE_URL_MARKETPLACE}/api/upload-files`, formData, getMultipartAuthHeaders(token)),
 };
