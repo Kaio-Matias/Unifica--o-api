@@ -1,49 +1,57 @@
 version: '3.8'
 
 services:
-  # --- Banco de Dados do Usuário ---
-  users-isaude-db:
+  users-db:
     image: postgres:16
-    container_name: users-isaude-db
+    container_name: users-isaude-db-local
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASS:-postgres}
       POSTGRES_DB: ${DB_NAME:-users_isaude_db}
     ports:
-      # Expõe a porta 5435 na sua máquina (localhost:5435)
-      - "5435:5432"
+      - "5435:5432" # Porta mapeada para evitar conflito com padrão
     volumes:
-      - users_isaude_pgdata:/var/lib/postgresql/data
+      - users_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # --- REDIS (para API de Usuários) ---
-  users-isaude-redis:
+  users-redis:
     image: redis:alpine
-    container_name: users-isaude-redis
+    container_name: users-isaude-redis-local
     restart: always
     ports:
       - "6379:6379"
     volumes:
-      - users_isaude_redisdata:/data
+      - users_redisdata:/data
 
-  # --- API de Usuários/Pacientes ---
   users-api:
-    build: . # <-- Ajustado: Constrói a partir da pasta atual
-    container_name: users-isaude-back-end
+    build: .
+    container_name: users-isaude-back-end-local
     restart: unless-stopped
-    env_file:
-      - ./.env # <-- Ajustado: Carrega o .env da pasta atual
+    env_file: .env
+    environment:
+      - PORT_API=80
+      - DB_HOST=users-db
+      - REDIS_HOST=users-redis
+      - DB_PORT=5432 # Porta interna do container do banco
     ports:
-      # Expõe a porta 8081 na sua máquina (localhost:8081)
       - "8081:80"
     volumes:
-      - ./:/src # <-- Ajustado: Monta a pasta atual para /src
+      - .:/src
       - /src/node_modules
+      # Garante que o arquivo de credenciais do Firebase seja montado
+      - ./serviceAccountKey.json:/src/serviceAccountKey.json
     depends_on:
-      - users-isaude-db
-      - users-isaude-redis
+      users-db:
+        condition: service_healthy
+      users-redis:
+        condition: service_started
     command: npm run dev
 
 volumes:
-  users_isaude_pgdata:
-  users_isaude_redisdata:
+  users_pgdata:
+  users_redisdata:

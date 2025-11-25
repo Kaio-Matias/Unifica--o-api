@@ -1,26 +1,42 @@
+version: '3.8'
 
 services:
-  db:
-    container_name: "marketplace-db"
-    image: postgres:latest
+  marketplace-db:
+    image: postgres:16
+    container_name: marketplace-db-local
     restart: always
-    volumes:
-      - ./.docker/postgresql.conf:/etc/postgresql/postgresql.conf
     environment:
-      POSTGRES_PASSWORD:  ${DB_PASS}
-      POSTGRES_USER:  ${DB_USER}
-      POSTGRES_DB:  ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-postgres}
+      POSTGRES_DB: ${DB_NAME:-marketplace_db}
     ports:
-      - ${BD_PORT}:5432
+      - "5432:5432"
+    volumes:
+      - marketplace_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  app:
-    container_name: 'marketplace-back-end'
-    build:
-        dockerfile: Dockerfile
-    env_file:
-      - ./.env
-    command: npm run dev
+  marketplace-api:
+    build: .
+    container_name: marketplace-back-end-local
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - PORT_API=80
+      - BD_HOST=marketplace-db
+      - DB_PORT=5432
     ports:
-      - '80:80'
+      - "8082:80"
+    volumes:
+      - .:/src
+      - /src/node_modules
     depends_on:
-      - db
+      marketplace-db:
+        condition: service_healthy
+    command: npm run dev
+
+volumes:
+  marketplace_pgdata:

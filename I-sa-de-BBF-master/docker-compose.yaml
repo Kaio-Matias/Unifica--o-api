@@ -1,10 +1,22 @@
+version: '3.8'
+
 services:
-  app:
-    container_name: "bff-isaude"
-    build:
-      dockerfile: Dockerfile
-    env_file:
-      - ./.env
-    command: npm run dev
+  bff-api:
+    build: .
+    container_name: bff-isaude-local
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - PORT_API=80
+      # Ajuste estas URLs se estiver rodando tudo separado.
+      # Exemplo: http://host.docker.internal:8081 se rodar localmente fora da rede docker
+      - APP_URL_USER=http://users-isaude-back-end:80
+      - APP_URL_MARKETPLACE=http://marketplace-back-end:80
+      - APP_URL_SOCIAL_MIDIA=http://social-midia-back-end:80
+      - APP_URL_TELECONSULTA=http://teleconsulta-back-end:80
     ports:
-      - "80:80"
+      - "8080:80"
+    volumes:
+      - .:/src
+      - /src/node_modules
+    command: npm run dev

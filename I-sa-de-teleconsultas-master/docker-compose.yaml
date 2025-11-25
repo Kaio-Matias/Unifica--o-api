@@ -1,26 +1,42 @@
+version: '3.8'
 
 services:
-  db:
-    container_name: "teleconsulta-db"
-    image: postgres:latest
+  teleconsulta-db:
+    image: postgres:16
+    container_name: teleconsulta-db-local
     restart: always
-    volumes:
-      - ./.docker/postgresql.conf:/etc/postgresql/postgresql.conf
     environment:
-      POSTGRES_PASSWORD:  ${DB_PASS}
-      POSTGRES_USER:  ${DB_USER}
-      POSTGRES_DB:  ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-postgres}
+      POSTGRES_DB: ${DB_NAME:-teleconsulta_db}
     ports:
-      - ${BD_PORT}:5432
+      - "5434:5432"
+    volumes:
+      - teleconsulta_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  app:
-    container_name: 'teleconsulta-back-end'
-    build:
-        dockerfile: Dockerfile
-    env_file:
-      - ./.env
-    command: npm run dev
+  teleconsulta-api:
+    build: .
+    container_name: teleconsulta-back-end-local
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - PORT_API=80
+      - BD_HOST=teleconsulta-db
+      - DB_PORT=5432
     ports:
-      - '80:80'
+      - "8084:80"
+    volumes:
+      - .:/src
+      - /src/node_modules
     depends_on:
-      - db
+      teleconsulta-db:
+        condition: service_healthy
+    command: npm run dev
+
+volumes:
+  teleconsulta_pgdata:

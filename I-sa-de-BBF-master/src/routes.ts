@@ -10,11 +10,16 @@ import SocialMidiaAPIRoutes from './app/routes/SocialMidiaAPIRoutes';
 
 const router = express.Router();
 
-//default
-router.get('/', authentication, DefaultControllersUsers);
-router.get('/api', authentication, DefaultControllersUsers);
+// --- ROTAS PÚBLICAS (Health Check) ---
+// Necessário para o Docker/AWS saber que a API subiu
+router.get('/', DefaultControllersUsers);
+router.get('/api', DefaultControllersUsers);
 
+// --- ROTAS AUTENTICADAS ---
+// Rotas de Usuário (Sugestão: Prefixar no futuro, ex: /api/users)
 router.use('/', UserRoutes);
+
+// Outros Microsserviços
 router.use('/api/marketplace', authentication, MarketplaceAPIRoutes);
 router.use('/api/teleconsulta', authentication, TeleConsultaAPIRoutes);
 router.use('/api/social-midia', authentication, SocialMidiaAPIRoutes);
