@@ -1,78 +1,98 @@
-import React from "react";
-import { View, Text, Image, ScrollView, Platform } from "react-native";
-import { ArrowLeft, ArrowRight } from "lucide-react-native";
-import { NavigationProp } from "../types/navigation";
-import { BackHeader } from "../components/ui/BackHeader";
-import { Button } from "../components/ui/Button";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { createContext, useContext, useState } from 'react';
+import { api } from '../api';
 
-interface RegisterScreenProps {
-    navigation: NavigationProp;
+// Tipagens para organizar os dados
+interface RegistrationData {
+  userType: 'pacient' | 'professional' | 'clinic';
+  // Agrupa os dados das várias etapas do seu wizard
+  basicInfo: { email?: string; telefone?: string; password?: string; confirmPassword?: string };
+  personalInfo: { nome?: string; cpf?: string; dataNascimento?: string; sexo?: string; cnpj?: string };
+  addressInfo: { cep?: string; rua?: string; numero?: string; bairro?: string; cidade?: string; estado?: string };
+  // Dados específicos
+  professionalInfo?: { areaAtuacao?: string; numeroRegistro?: string; uf?: string; especialidade?: string; sobre?: string };
+  clinicInfo?: { nomeFantasia?: string; nomeResponsavel?: string; tipoUnidade?: string };
 }
 
-export default function RegisterScreen({ navigation }: RegisterScreenProps) {
-    const handleBack = () => {
-        navigation.navigate("Home");
+interface RegisterContextType {
+  data: RegistrationData;
+  updateData: (section: keyof RegistrationData, value: any) => void;
+  submitRegistration: () => Promise<any>; // Retorna a resposta da API
+  loading: boolean;
+}
+
+const RegisterContext = createContext<RegisterContextType>({} as RegisterContextType);
+
+export function RegisterProvider({ children }: { children: React.ReactNode }) {
+  const [data, setData] = useState<RegistrationData>({
+    userType: 'pacient', // Valor inicial padrão
+    basicInfo: {},
+    personalInfo: {},
+    addressInfo: {},
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Função para atualizar partes do estado conforme o usuário avança nas telas
+  const updateData = (section: keyof RegistrationData, value: any) => {
+    setData((prev) => ({
+      ...prev,
+      [section]: { ...prev[section], ...value }, // Merge dos dados
+    }));
+  };
+
+  // Função final que envia para o BFF
+  const submitRegistration = async () => {
+    setLoading(true);
+    try {
+      console.log('Iniciando registro...', data);
+
+      // 1. Monta o Payload de Orquestração para o BFF
+      const payload = {
+        // Dados do Usuário Base
+        nome: data.personalInfo.nome || data.clinicInfo?.nomeFantasia,
+        email: data.basicInfo.email,
+        password: data.basicInfo.password,
+        telefone: data.basicInfo.telefone,
+        cpf: data.personalInfo.cpf, // Opcional para clínica
+        user_type: data.userType,   // CRUCIAL: Define o fluxo no Backend
+
+        // Dados Específicos injetados no mesmo nível (Flat Object) para o BFF processar
+        ...(data.userType === 'professional' && {
+          area_atuacao: data.professionalInfo?.areaAtuacao,
+          numero_registro: data.professionalInfo?.numeroRegistro,
+          estado_atuacao: data.professionalInfo?.uf,
+          especialidade: data.professionalInfo?.especialidade,
+          sobre: data.professionalInfo?.sobre,
+        }),
+
+        ...(data.userType === 'clinic' && {
+          cnpj: data.personalInfo.cnpj,
+          nome_fantasia: data.clinicInfo?.nomeFantasia,
+          nome_responsavel: data.clinicInfo?.nomeResponsavel,
+          tipo_unidade: data.clinicInfo?.tipoUnidade,
+          // Dados do responsável (se a UI coletar separado, mapear aqui)
+          cpf_responsavel: data.personalInfo.cpf, 
+          email_responsavel: data.basicInfo.email,
+        })
       };
-    const insets = useSafeAreaInsets();
-    
-    return (
-        <View style={{ 
-            flex: 1, 
-            backgroundColor: "#fff",
-            paddingTop: insets.top,
-            paddingBottom: Platform.OS === 'android' ? insets.bottom : 0,
-            paddingLeft: Platform.OS === 'android' ? insets.left : 0,
-            paddingRight: Platform.OS === 'android' ? insets.right : 0
-        }}>
-            {/* Cabeçalho */}
-            <BackHeader title="Nova Conta" onBackPress={handleBack} />
 
-            <ScrollView 
-                contentContainerStyle={{ flexGrow: 1 }} 
-                keyboardShouldPersistTaps="handled"
-            >
-                {/* Ilustração */}
-                <View className="items-center justify-center mt-2">
-                    <Image
-                        source={require("../assets/register-image.png")}
-                        style={{ width: "90%", height: '60%' }}
-                        resizeMode="contain"
-                    />
-                </View>
+      // 2. Envia para a API
+      const response = await api.post('/users', payload);
+      
+      return response.data;
 
-                {/* Conteúdo */}
-                <View className="flex-1 px-6">
-                    <Text className="text-2xl font-bold mb-2">Vamos iniciar sua Jornada.</Text>
-                    <Text className="text-base text-gray-600 mb-2">
-                        No iSaúde, conectamos profissionais de saúde, clínicas, farmácias e pacientes em uma rede de cuidado e bem-estar.
-                    </Text>
-                    <Text className="text-base text-gray-600 mb-6">
-                        Escolha abaixo como você deseja começar sua jornada com a gente:
-                    </Text>
+    } catch (error: any) {
+      console.error('Erro no Contexto de Registro:', error.response?.data || error.message);
+      throw error; // Lança o erro para a tela tratar visualmente
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                    {/* Botões */}
-                    <Button
-                        className="flex-row items-center justify-between rounded-xl px-6 py-4 mb-4"
-                        onPress={() => navigation.navigate('PersonalInformationFormPacient')}
-                        variant="primary"
-                        icon={<ArrowRight size={22} color="#fff" />}
-                        style={{ marginBottom: 12, justifyContent: 'space-between' }}
-                    >
-                        <Text className="text-white text-base font-semibold">Quero cuidar da minha Saúde</Text>
-                    </Button>
+  return (
+    <RegisterContext.Provider value={{ data, updateData, submitRegistration, loading }}>
+      {children}
+    </RegisterContext.Provider>
+  );
+}
 
-                    <Button
-                        className="flex-row items-center justify-between rounded-xl px-6 py-4"
-                        onPress={() => navigation.navigate('ConnectType')}
-                        variant="secondary"
-                        icon={<ArrowRight size={22} color="#fff" />}
-                        style={{ marginBottom: Platform.OS === 'android' ? insets.bottom + 24 : 24, justifyContent: 'space-between' }}
-                    >
-                        <Text className="text-white text-base font-semibold">Quero oferecer meus Serviços</Text>
-                    </Button>
-                </View>
-            </ScrollView>
-        </View>
-    );
-} 
+export const useRegister = () => useContext(RegisterContext);

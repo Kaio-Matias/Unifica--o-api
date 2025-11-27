@@ -1,76 +1,41 @@
-import api from './api';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { api } from './api';
 
-// Tipos para os dados de usuário e tokens
-interface User {
-  id: number;
-  nome: string;
-  email: string;
-  user_type: 'pacient' | 'professional' | 'clinic';
-  // Adicione outros campos conforme necessário
-}
+export const USER_STORAGE_KEY = 'isaude_user';
+export const TOKEN_STORAGE_KEY = 'auth_token';
 
-interface AuthResponse {
-  user: User;
-  token: string;
-}
-
-/**
- * Realiza o login do usuário.
- * @param email - O email do usuário.
- * @param password - A senha do usuário.
- * @returns Os dados do usuário e o token.
- */
-export const login = async (email, password) => {
+export async function saveAuthData(token: string, user: any) {
   try {
-    const response = await api.post<AuthResponse>('/user/login', {
-      email,
-      password,
-    });
-
-    const { user, token } = response.data;
-
-    // Armazena o token de forma segura
-    await SecureStore.setItemAsync('userToken', token);
-
-    // Adiciona o token aos headers padrão do Axios para futuras requisições
+    await AsyncStorage.setItem(TOKEN_STORAGE_KEY, token);
+    await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    
+    // Atualiza o header padrão para requisições futuras imediatas
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-    return { user, token };
   } catch (error) {
-    console.error('Falha no login:', error.response?.data || error.message);
-    throw error;
+    console.error('Erro ao salvar dados de auth:', error);
   }
-};
+}
 
-/**
- * Realiza o logout do usuário.
- */
-export const logout = async () => {
+export async function getAuthData() {
   try {
-    // Remove o token do armazenamento seguro
-    await SecureStore.deleteItemAsync('userToken');
-
-    // Remove o token dos headers padrão do Axios
-    delete api.defaults.headers.common['Authorization'];
+    const token = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
+    const user = await AsyncStorage.getItem(USER_STORAGE_KEY);
+    return {
+      token,
+      user: user ? JSON.parse(user) : null,
+    };
   } catch (error) {
-    console.error('Falha no logout:', error);
-    throw error;
+    return { token: null, user: null };
   }
-};
+}
 
-
-/**
- * Cria um novo usuário.
- * @param userData - Os dados do novo usuário.
- * @returns Os dados do usuário criado.
- */
-export const createUser = async (userData) => {
-    try {
-        const response = await api.post<User>('/user/create', userData);
-        return response.data;
-    } catch (error) {
-        console.error('Falha ao criar usuário:', error.response?.data || error.message);
-        throw error;
-    }
-};
+export async function logout() {
+  try {
+    await AsyncStorage.multiRemove([TOKEN_STORAGE_KEY, USER_STORAGE_KEY]);
+    delete api.defaults.headers.common['Authorization'];
+    router.replace('/login');
+  } catch (error) {
+    console.error('Erro ao fazer logout:', error);
+  }
+}

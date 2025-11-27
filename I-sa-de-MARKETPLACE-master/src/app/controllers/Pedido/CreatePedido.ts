@@ -1,36 +1,38 @@
-
 import { Request, Response } from 'express';
-import { PedidoService } from "../../services/Pedido";
-import { PedidoItemService } from "../../services/PedidoItems";
+import { PedidoService } from '../../services/Pedido';
 
 async function createPedido(req: Request, res: Response) {
   try {
-    const body = req.body
-    const getService = new PedidoService();
-    const getServicePedidoItem = new PedidoItemService();
+    const body = req.body;
+    const pedidoService = new PedidoService();
 
-    const pedido = await getService.createPedido(body);
-    let items: any[] = [];
+    // O serviço deve lançar erros explicativos se falhar
+    const result = await pedidoService.createPedido(body);
 
-    if (req.body.items && req.body.items.length > 0) {
-      items = body.items.map(item => {
-        return getServicePedidoItem.createPedidoItem({
-          pedido,
-          titulo: item.title,
-          unit_price: item.unit_price,
-          quantity: item.quantity,
-          description: item.description,
-          picture_url: item.picture_url,
-          currency_id: item.currency_id,
-          category_id: item.category_id,
-          produto_id: item.produto_id // se tiver
-        });
-      });
+    return res.status(201).json({ 
+      message: "Pedido realizado com sucesso", 
+      pedido: result 
+    });
+
+  } catch (err: any) {
+    console.error("Erro ao criar pedido:", err);
+
+    // Lista de erros de negócio conhecidos (retornar 400 Bad Request)
+    const businessErrors = [
+      'Campos obrigatórios ausentes',
+      'Produto sem estoque',
+      'Carrinho vazio',
+      'Erro no processamento do pagamento'
+    ];
+
+    if (businessErrors.some(msg => err.message?.includes(msg))) {
+      return res.status(400).json({ message: err.message });
     }
 
-    return res.status(201).json({ results: pedido, items, message: "Pedido criado com sucesso" });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return res.status(500).json({ 
+      message: "Erro interno ao processar o pedido.",
+      detail: err.message 
+    });
   }
 }
 

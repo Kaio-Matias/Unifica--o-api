@@ -1,39 +1,57 @@
-import {NextFunction, Request, Response} from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-if (process.env.NODE_ENV === 'development') {
-  require('dotenv').config({
-    path: '.env.development',
-  })
+if (process.env.NODE_ENV === 'test') {
+  dotenv.config({ path: '.env.test' });
 } else {
-  require('dotenv').config({
-    path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
-  })
+  dotenv.config();
+}
+
+// Estendendo o Request para incluir o usuário
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+      };
+    }
+  }
+}
+
+interface TokenPayload {
+  sub: string;
+  iat: number;
+  exp: number;
 }
 
 async function auth(req: Request, res: Response, next: NextFunction) {
-  const authHeader:string | undefined = req.header('Authorization');
+  const authHeader = req.headers.authorization;
 
   if (!authHeader) {
     return res.status(401).json({ message: 'Token not provided' });
   }
-  const token: string = req.header('Authorization')
-  const jwtApp = await jwt.sign(
-    {
-      token: 'Bearer ' + token,
-    },
-    token
-  );
+
+  const [, token] = authHeader.split(' ');
+
+  if (!token) {
+    return res.status(401).json({ message: 'Token format invalid' });
+  }
+
   try {
-    const verified = await jwt.verify(
-      jwtApp,
-      'Bearer ' + process.env.APP_SECRET
-    );
-    if (verified) {
-      next();
-    }
+    const secret = process.env.APP_SECRET || 'sua-chave-secreta';
+    const decoded = jwt.verify(token, secret) as TokenPayload;
+
+    req.user = {
+      id: decoded.sub,
+    };
+
+    return next();
   } catch (error) {
-    return res.status(401).json({ message: 'Token Invalid', error });
+    return res.status(401).json({ 
+      message: 'Token Invalid or Expired', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 }
 

@@ -1,57 +1,117 @@
-import React from "react";
-import { View, Text, Image, ScrollView } from "react-native";
-import { Button } from "../../components/ui/Button";
-import Stepper from "../../components/ui/Stepper";
-import { useNavigation } from "@react-navigation/native";
-import { BackHeader } from "../../components/ui/BackHeader";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowRight } from "lucide-react-native";
+import React from 'react';
+import { View, StyleSheet, Image, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function ConfirmedRegisterPacient(props: any) {
-  const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
+// IMPORTS DE DESIGN
+import { Button } from '../../components/ui/Button';
+import { ThemedText } from '../../components/themed-text';
+import { ThemedView } from '../../components/themed-view';
+import { useRegister } from '../../lib/context/RegisterContext'; // Importa a lógica
+
+export default function ConfirmRegisterPacient() {
+  const router = useRouter();
+  const { submitRegistration, loading, data } = useRegister();
+
+  const handleConfirm = async () => {
+    try {
+      // Chama a função do contexto que bate na API
+      await submitRegistration();
+      
+      // Se deu certo, mostra alerta e vai para sucesso
+      // O Backend BFF cria User + Paciente em uma tacada só
+      Alert.alert('Sucesso', 'Conta criada com sucesso!');
+      
+      // Navega para a tela de "Cadastro Confirmado" (visual)
+      // Verifique se a rota '/(tabs)/home' é onde você quer jogar o user, 
+      // ou se tem uma tela intermediária de sucesso.
+      router.replace('/login'); 
+      
+    } catch (error: any) {
+      const msg = error.response?.data?.error || 'Não foi possível concluir o cadastro.';
+      Alert.alert('Erro', msg);
+    }
+  };
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}>
-      <BackHeader title="Cadastro Confirmado!" hideBackIcon />
-      <Stepper totalSteps={4} currentStep={5} />
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-        <View className="flex-1 px-4 pt-2 items-center justify-start w-full">
-          <View className="w-full items-center mt-2 mb-2">
-           
-          </View>
-         
-          <View className="items-center justify-center w-full" style={{ backgroundColor: '#fff', borderRadius: 8, height: '65%', marginBottom: 24, paddingVertical: 8 }}>
-            <Image
-              source={require("../../assets/images/Confirm-Register-Pacient.png")}
-              style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
-            />
-          </View>
-          <View className="w-full px-2 flex justify-center">
-            <Text className="text-2xl font-bold mb-1 text-left w-full" style={{ marginBottom: 4 }}>
-            Cadastro realizado com sucesso!
-            </Text>
-            <Text className="text-gray-500 text-base text-left w-full">
-            Agora você faz parte do iSaúde e pode acessar todos os recursos da nossa plataforma. Bem-vindo!
-            </Text>
-          </View>
+    <ThemedView style={styles.container}>
+      <View style={styles.content}>
+        {/* IMAGEM DE CONFIRMAÇÃO (MANTIDA) */}
+        <Image 
+          source={require('../../assets/images/Confirm-Register-Pacient.png')} 
+          style={styles.image}
+          resizeMode="contain"
+        />
+
+        <ThemedText type="title" style={styles.title}>Tudo Pronto!</ThemedText>
+        
+        <ThemedText style={styles.text}>
+          Olá, <ThemedText type="defaultSemiBold">{data.personalInfo.nome}</ThemedText>.
+          {'\n'}Confirme seus dados para finalizar o cadastro no iSaúde.
+        </ThemedText>
+
+        <View style={styles.buttonContainer}>
+          <Button onPress={handleConfirm} disabled={loading} style={styles.button}>
+            {loading ? (
+              <ThemedText style={styles.buttonText}>Processando...</ThemedText>
+            ) : (
+              <ThemedText style={styles.buttonText}>Confirmar Cadastro</ThemedText>
+            )}
+          </Button>
+
+          <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
+            <ThemedText style={styles.backButtonText}>Voltar e Revisar</ThemedText>
+          </Button>
         </View>
-      </ScrollView>
-      <View style={{ 
-        paddingHorizontal: 24, 
-        paddingBottom: insets.bottom + 24, 
-        backgroundColor: "#fff",
-        borderTopWidth: 1,
-        borderTopColor: '#f3f4f6'
-      }}>
-        <Button
-          onPress={() => navigation.navigate('Home')}
-          icon={<ArrowRight size={18} color="white" />}
-          className="w-full rounded-lg"
-          style={{ backgroundColor: '#01AEA4' }}
-        >
-          Começar a Navegar
-        </Button>
       </View>
-    </View>
+    </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  content: {
+    alignItems: 'center',
+    gap: 20,
+  },
+  image: {
+    width: 250,
+    height: 250,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    textAlign: 'center',
+  },
+  text: {
+    textAlign: 'center',
+    fontSize: 16,
+    lineHeight: 24,
+    marginBottom: 20,
+    opacity: 0.8,
+  },
+  buttonContainer: {
+    width: '100%',
+    gap: 10,
+  },
+  button: {
+    paddingVertical: 12,
+  },
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  backButton: {
+    paddingVertical: 12,
+    borderColor: '#ccc',
+  },
+  backButtonText: {
+    textAlign: 'center',
+    fontSize: 16,
+  }
+});
