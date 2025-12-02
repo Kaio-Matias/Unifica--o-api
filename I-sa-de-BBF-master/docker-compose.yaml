@@ -3,17 +3,11 @@ version: '3.8'
 services:
   bff-api:
     build: .
-    container_name: bff-isaude-local
+    container_name: bff-isaude
     restart: unless-stopped
-    env_file: .env
-    environment:
-      - PORT_API=80
-      # Ajuste estas URLs se estiver rodando tudo separado.
-      # Exemplo: http://host.docker.internal:8081 se rodar localmente fora da rede docker
-      - APP_URL_USER=http://users-isaude-back-end:80
-      - APP_URL_MARKETPLACE=http://marketplace-back-end:80
-      - APP_URL_SOCIAL_MIDIA=http://social-midia-back-end:80
-      - APP_URL_TELECONSULTA=http://teleconsulta-back-end:80
+    # Carrega as variáveis do arquivo .env
+    env_file: .env 
+    # REMOVIDO: environment section (para não sobrescrever o .env)
     ports:
       - "8080:80"
     volumes:

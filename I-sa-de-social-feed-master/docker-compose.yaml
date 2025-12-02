@@ -1,42 +1,40 @@
 version: '3.8'
 
 services:
-  social-midia-db:
+  teleconsulta-db:
     image: postgres:16
-    container_name: social-midia-db-local
+    container_name: teleconsulta-db-local
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASS:-postgres}
-      POSTGRES_DB: ${DB_NAME:-social_midia_db}
+      POSTGRES_DB: ${DB_NAME:-teleconsulta_db}
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
-      - social_midia_pgdata:/var/lib/postgresql/data
+      - teleconsulta_pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  social-feed-api:
+  teleconsulta-api:
     build: .
-    container_name: social-midia-back-end-local
+    container_name: teleconsulta-api-local
     restart: unless-stopped
     env_file: .env
     environment:
-      - PORT_API=80
-      - BD_HOST=social-midia-db
-      - DB_PORT=5432
+      - BD_HOST=teleconsulta-db
     ports:
-      - "8083:80"
+      - "8084:80"
     volumes:
       - .:/src
       - /src/node_modules
     depends_on:
-      social-midia-db:
+      teleconsulta-db:
         condition: service_healthy
     command: npm run dev
 
 volumes:
-  social_midia_pgdata:
+  teleconsulta_pgdata:

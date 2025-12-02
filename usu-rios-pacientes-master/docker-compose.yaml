@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS:-postgres}
       POSTGRES_DB: ${DB_NAME:-users_isaude_db}
     ports:
-      - "5435:5432" # Porta mapeada para evitar conflito com padrão
+      - "5435:5432"
     volumes:
       - users_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -30,21 +30,18 @@ services:
 
   users-api:
     build: .
-    container_name: users-isaude-back-end-local
+    container_name: users-api-local
     restart: unless-stopped
     env_file: .env
     environment:
-      - PORT_API=80
-      - DB_HOST=users-db
-      - REDIS_HOST=users-redis
-      - DB_PORT=5432 # Porta interna do container do banco
+      - BD_HOST=users-db
+      - REDIS_URL=redis://users-redis:6379
     ports:
       - "8081:80"
     volumes:
       - .:/src
-      - /src/node_modules
-      # Garante que o arquivo de credenciais do Firebase seja montado
       - ./serviceAccountKey.json:/src/serviceAccountKey.json
+      - /src/node_modules
     depends_on:
       users-db:
         condition: service_healthy

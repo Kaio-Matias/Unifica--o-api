@@ -1,44 +1,9 @@
+version: '3.8'
+
 services:
-  # --- BANCOS DE DADOS ---
-  marketplace-db:
-    image: postgres:16
-    container_name: marketplace-db
-    restart: always
-    environment:
-      POSTGRES_USER: ${MP_DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${MP_DB_PASS:-postgres}
-      POSTGRES_DB: ${MP_DB_NAME:-marketplace_db}
-    ports:
-      - "${MP_BD_PORT:-5432}:5432"
-    volumes:
-      - marketplace_pgdata:/var/lib/postgresql/data
-
-  social-midia-db:
-    image: postgres:16
-    container_name: social-midia-db
-    restart: always
-    environment:
-      POSTGRES_USER: ${SM_DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${SM_DB_PASS:-postgres}
-      POSTGRES_DB: ${SM_DB_NAME:-social_midia_db}
-    ports:
-      - "${SM_BD_PORT:-5433}:5432"
-    volumes:
-      - social_midia_pgdata:/var/lib/postgresql/data
-
-  teleconsulta-db:
-    image: postgres:16
-    container_name: teleconsulta-db
-    restart: always
-    environment:
-      POSTGRES_USER: ${TC_DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${TC_DB_PASS:-postgres}
-      POSTGRES_DB: ${TC_DB_NAME:-teleconsulta_db}
-    ports:
-      - "${TC_BD_PORT:-5434}:5432"
-    volumes:
-      - teleconsulta_pgdata:/var/lib/postgresql/data
-
+  # ----------------------------------------------------------------
+  # SERVIÇO DE USUÁRIOS (Porta 8081)
+  # ----------------------------------------------------------------
   users-isaude-db:
     image: postgres:16
     container_name: users-isaude-db
@@ -51,8 +16,12 @@ services:
       - "${USER_BD_PORT:-5435}:5432"
     volumes:
       - users_isaude_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USER_DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # --- REDIS (para API de Usuários) ---
   users-isaude-redis:
     image: redis:alpine
     container_name: users-isaude-redis
@@ -62,83 +31,157 @@ services:
     volumes:
       - users_isaude_redisdata:/data
 
-  # --- API de Usuários/Pacientes ---
   users-api:
     build: ./usu-rios-pacientes-master
-    container_name: users-isaude-back-end
+    container_name: users-api # Nome usado pelo BFF para comunicar internamente
     restart: unless-stopped
     env_file:
       - ./usu-rios-pacientes-master/.env
+    environment:
+      - BD_HOST=users-isaude-db
+      - REDIS_URL=redis://users-isaude-redis:6379
     ports:
       - "8081:80"
     volumes:
       - ./usu-rios-pacientes-master:/src
-      # --- CORREÇÃO ADICIONADA AQUI ---
-      # Mapeia o serviceAccountKey.json para dentro do contêiner
       - ./usu-rios-pacientes-master/serviceAccountKey.json:/src/serviceAccountKey.json
       - /src/node_modules
     depends_on:
-      - users-isaude-db
-      - users-isaude-redis
+      users-isaude-db:
+        condition: service_healthy
+      users-isaude-redis:
+        condition: service_started
     command: npm run dev
 
-  # --- API de Marketplace ---
+  # ----------------------------------------------------------------
+  # SERVIÇO DE MARKETPLACE (Porta 8082)
+  # ----------------------------------------------------------------
+  marketplace-db:
+    image: postgres:16
+    container_name: marketplace-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${MP_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${MP_DB_PASS:-postgres}
+      POSTGRES_DB: ${MP_DB_NAME:-marketplace_db}
+    ports:
+      - "${MP_BD_PORT:-5432}:5432"
+    volumes:
+      - marketplace_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MP_DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   marketplace-api:
     build: ./I-sa-de-MARKETPLACE-master
-    container_name: marketplace-back-end
+    container_name: marketplace-api
     restart: unless-stopped
     env_file:
       - ./I-sa-de-MARKETPLACE-master/.env
+    environment:
+      - BD_HOST=marketplace-db
     ports:
       - "8082:80"
     volumes:
       - ./I-sa-de-MARKETPLACE-master:/src
       - /src/node_modules
     depends_on:
-      - marketplace-db
+      marketplace-db:
+        condition: service_healthy
     command: npm run dev
 
-  # --- API de Social Feed ---
+  # ----------------------------------------------------------------
+  # SERVIÇO DE SOCIAL FEED (Porta 8083)
+  # ----------------------------------------------------------------
+  social-midia-db:
+    image: postgres:16
+    container_name: social-midia-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${SM_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${SM_DB_PASS:-postgres}
+      POSTGRES_DB: ${SM_DB_NAME:-social_midia_db}
+    ports:
+      - "${SM_BD_PORT:-5433}:5432"
+    volumes:
+      - social_midia_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SM_DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   social-feed-api:
     build: ./I-sa-de-social-feed-master
-    container_name: social-midia-back-end
+    container_name: social-feed-api
     restart: unless-stopped
     env_file:
       - ./I-sa-de-social-feed-master/.env
+    environment:
+      - BD_HOST=social-midia-db
     ports:
       - "8083:80"
     volumes:
       - ./I-sa-de-social-feed-master:/src
       - /src/node_modules
     depends_on:
-      - social-midia-db
+      social-midia-db:
+        condition: service_healthy
     command: npm run dev
 
-  # --- API de Teleconsulta ---
+  # ----------------------------------------------------------------
+  # SERVIÇO DE TELECONSULTA (Porta 8084)
+  # ----------------------------------------------------------------
+  teleconsulta-db:
+    image: postgres:16
+    container_name: teleconsulta-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${TC_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${TC_DB_PASS:-postgres}
+      POSTGRES_DB: ${TC_DB_NAME:-teleconsulta_db}
+    ports:
+      - "${TC_BD_PORT:-5434}:5432"
+    volumes:
+      - teleconsulta_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TC_DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   teleconsulta-api:
     build: ./I-sa-de-teleconsultas-master
-    container_name: teleconsulta-back-end
+    container_name: teleconsulta-api
     restart: unless-stopped
     env_file:
       - ./I-sa-de-teleconsultas-master/.env
+    environment:
+      - BD_HOST=teleconsulta-db
     ports:
       - "8084:80"
     volumes:
       - ./I-sa-de-teleconsultas-master:/src
       - /src/node_modules
     depends_on:
-      - teleconsulta-db
+      teleconsulta-db:
+        condition: service_healthy
     command: npm run dev
 
-  # --- API Gateway (BFF) ---
+  # ----------------------------------------------------------------
+  # BFF - API GATEWAY (Porta 8080) -> O App conecta aqui!
+  # ----------------------------------------------------------------
   bff-api:
     build: ./I-sa-de-BBF-master
     container_name: bff-isaude
     restart: unless-stopped
     env_file:
       - ./I-sa-de-BBF-master/.env
+    # NÃO adicione variáveis de ambiente aqui para URLs, use o .env do BFF
     ports:
-      - "8080:80" # <-- PONTO DE ENTRADA PRINCIPAL
+      - "8080:80"
     volumes:
       - ./I-sa-de-BBF-master:/src
       - /src/node_modules
@@ -149,11 +192,9 @@ services:
       - teleconsulta-api
     command: npm run dev
 
-# Define os volumes nomeados para persistência
 volumes:
   marketplace_pgdata:
   social_midia_pgdata:
   teleconsulta_pgdata:
   users_isaude_pgdata:
   users_isaude_redisdata:
-
